@@ -4,7 +4,7 @@ Proyecto desarrollado para el Parcial N°1 de la cátedra **Programación III** 
 
 ## Grupo: Hexa
 Integrantes
-  └── Marco Ezequiel Brizuela
+- Marco Ezequiel Brizuela
   
 ---
 
