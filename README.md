@@ -1,11 +1,10 @@
-```md id="cptbsv"
 # Hexa-Parcial1-Prog3
 
 Proyecto desarrollado para el Parcial N°1 de la cátedra **Programación III** utilizando Java, Maven y Lombok.
 
-Grupo: Hexa
+## Grupo:
+        Hexa
         └── Marco Ezequiel Brizuela
-
 ---
 
 ## Autor
@@ -19,6 +18,3 @@ Grupo: Hexa
 ## Licencia
 
 Proyecto académico desarrollado con fines educativos.
-```
-
----
