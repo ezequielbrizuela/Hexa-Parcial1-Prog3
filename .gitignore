@@ -1,0 +1,8 @@
+target/
+.github/
+.idea/
+.vscode/
+release.properties
+logs/
+*.log
+application-local.properties
