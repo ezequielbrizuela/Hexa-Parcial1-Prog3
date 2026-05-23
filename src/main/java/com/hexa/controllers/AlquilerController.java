@@ -1,13 +1,14 @@
 package com.hexa.controllers;
 
-import com.hexa.models.DesbloqueoRequest;
-import com.hexa.models.DesbloqueoResponse;
-import com.hexa.models.ErrorResponse;
+import com.hexa.dto.DesbloqueoRequest;
+import com.hexa.dto.DesbloqueoResponse;
+import com.hexa.dto.ErrorResponse;
 import com.hexa.exceptions.BateriaInsuficienteException;
 import com.hexa.exceptions.MetodoPagoInvalidoException;
 import com.hexa.exceptions.UsuarioNoEncontradoException;
 import com.hexa.exceptions.VehiculoNoEncontradoException;
 import com.hexa.service.EcoRideService;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +23,18 @@ public class AlquilerController {
         this.ecoRideService = ecoRideService;
     }
 
-    @GetMapping("/desbloquear")
+    @PostMapping("/desbloquear")
     public ResponseEntity<DesbloqueoResponse> desbloquear(@RequestBody DesbloqueoRequest request) {
+        DesbloqueoResponse response = ecoRideService.desbloquear(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/desbloquear")
+    public ResponseEntity<DesbloqueoResponse> desbloquearPorParametros(
+            @RequestParam Long idUsuario,
+            @RequestParam String patente,
+            @RequestParam String metodoPago) {
+        DesbloqueoRequest request = new DesbloqueoRequest(idUsuario, patente, metodoPago);
         DesbloqueoResponse response = ecoRideService.desbloquear(request);
         return ResponseEntity.ok(response);
     }

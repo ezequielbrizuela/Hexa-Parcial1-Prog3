@@ -3,9 +3,12 @@
 Proyecto desarrollado para el Parcial N°1 de la cátedra **Programación III** utilizando Java, Maven y Lombok.
 
 ## Grupo: Hexa
-Integrantes
-- Marco Ezequiel Brizuela
-  
+
+Integrantes:
+- Perez Joaquin EISI852
+- Perez Valentina ELSI1240
+- Brizuela Marco Ezequiel EISI676
+
 ---
 
 ## Autor

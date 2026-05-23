@@ -1,6 +1,10 @@
 package com.hexa.service;
 
 import com.hexa.models.EstacionAnclaje;
+import com.hexa.models.BicicletaElectrica;
+import com.hexa.models.Monopatin;
+import com.hexa.models.UsuarioPremium;
+import com.hexa.models.UsuarioRegular;
 import com.hexa.models.Vehiculo;
 import com.hexa.dto.DesbloqueoRequest;
 import com.hexa.dto.DesbloqueoResponse;
@@ -22,11 +26,9 @@ public class EcoRideService {
     private final Map<Long, Usuario> usuarios;
     private final ProcesadorPagoFactory procesadorPagoFactory;
 
-    public EcoRideService(EstacionAnclaje estacion,
-                          Map<Long, Usuario> usuarios,
-                          ProcesadorPagoFactory procesadorPagoFactory) {
-        this.estacion = estacion;
-        this.usuarios = new HashMap<>(usuarios);
+    public EcoRideService(ProcesadorPagoFactory procesadorPagoFactory) {
+        this.estacion = crearEstacionInicial();
+        this.usuarios = crearUsuariosIniciales();
         this.procesadorPagoFactory = procesadorPagoFactory;
     }
 
@@ -67,5 +69,20 @@ public class EcoRideService {
         if (vehiculo.getBateria() < BATERIA_MINIMA) {
             throw new BateriaInsuficienteException("Bateria Insuficiente: el vehiculo tiene " + vehiculo.getBateria() + "% de bateria.");
         }
+    }
+
+    private EstacionAnclaje crearEstacionInicial() {
+        EstacionAnclaje estacionInicial = new EstacionAnclaje("Estacion Centro");
+        estacionInicial.agregarVehiculo(new Monopatin("MONO-001", 80, 1200, true));
+        estacionInicial.agregarVehiculo(new BicicletaElectrica("BICI-001", 60, 1000, 2500));
+        estacionInicial.agregarVehiculo(new Monopatin("MONO-002", 10, 900, false));
+        return estacionInicial;
+    }
+
+    private Map<Long, Usuario> crearUsuariosIniciales() {
+        Map<Long, Usuario> usuariosIniciales = new HashMap<>();
+        usuariosIniciales.put(1L, new UsuarioRegular(1L, "Usuario Regular"));
+        usuariosIniciales.put(2L, new UsuarioPremium(2L, "Usuario Premium", 15));
+        return usuariosIniciales;
     }
 }

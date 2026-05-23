@@ -1,13 +1,19 @@
 package com.hexa.service;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import org.springframework.stereotype.Component;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@ToString
-public class PagoBilleteraVirtual {
+import com.hexa.models.MetodoPago;
+
+@Component
+public class PagoBilleteraVirtual implements ProcesadorPago {
+
+    @Override
+    public void cobrar(double monto) {
+        // Simulacion de cobro con billetera virtual.
+    }
+
+    @Override
+    public MetodoPago getMetodoPago() {
+        return MetodoPago.BILLETERA;
+    }
 }
