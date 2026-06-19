@@ -1,17 +1,25 @@
 package com.hexa.service;
 
-import com.hexa.models.EstacionAnclaje;
+import com.hexa.dto.CambioTarifaRequest;
+import com.hexa.dto.CambioTarifaResponse;
+import com.hexa.dto.DesbloqueoRequest;
+import com.hexa.dto.DesbloqueoResponse;
+import com.hexa.dto.FinalizarAlquilerRequest;
+import com.hexa.dto.FinalizarAlquilerResponse;
+import com.hexa.exceptions.BateriaInsuficienteException;
+import com.hexa.exceptions.SolicitudInvalidaException;
+import com.hexa.exceptions.UsuarioNoEncontradoException;
+import com.hexa.exceptions.VehiculoNoEncontradoException;
 import com.hexa.models.BicicletaElectrica;
+import com.hexa.models.EstacionAnclaje;
 import com.hexa.models.Monopatin;
+import com.hexa.models.Usuario;
 import com.hexa.models.UsuarioPremium;
 import com.hexa.models.UsuarioRegular;
 import com.hexa.models.Vehiculo;
-import com.hexa.dto.DesbloqueoRequest;
-import com.hexa.dto.DesbloqueoResponse;
-import com.hexa.exceptions.BateriaInsuficienteException;
-import com.hexa.exceptions.UsuarioNoEncontradoException;
-import com.hexa.exceptions.VehiculoNoEncontradoException;
-import com.hexa.models.Usuario;
+import com.hexa.service.tarifa.EstrategiaTarifa;
+import com.hexa.service.tarifa.EstrategiaTarifaFactory;
+
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -25,28 +33,61 @@ public class EcoRideService {
     private final EstacionAnclaje estacion;
     private final Map<Long, Usuario> usuarios;
     private final ProcesadorPagoFactory procesadorPagoFactory;
+    private final EstrategiaTarifaFactory estrategiaTarifaFactory;
+    private EstrategiaTarifa estrategiaTarifaActiva;
 
-    public EcoRideService(ProcesadorPagoFactory procesadorPagoFactory) {
+    public EcoRideService(ProcesadorPagoFactory procesadorPagoFactory, EstrategiaTarifaFactory estrategiaTarifaFactory) {
         this.estacion = crearEstacionInicial();
         this.usuarios = crearUsuariosIniciales();
         this.procesadorPagoFactory = procesadorPagoFactory;
+        this.estrategiaTarifaFactory = estrategiaTarifaFactory;
+        this.estrategiaTarifaActiva = estrategiaTarifaFactory.obtenerEstrategia("ESTANDAR");
     }
 
     public DesbloqueoResponse desbloquear(DesbloqueoRequest request) {
+        validarDesbloqueoRequest(request);
         Usuario usuario = buscarUsuario(request.getIdUsuario());
         Vehiculo vehiculo = buscarVehiculo(request.getPatente());
 
         validarBateria(vehiculo);
 
-        double importeFinal = usuario.aplicarDescuento(vehiculo.getTarifaBase());
-
         ProcesadorPago procesadorPago = procesadorPagoFactory.obtenerProcesador(request.getMetodoPago());
-        procesadorPago.cobrar(importeFinal);
+        vehiculo.iniciarViaje();
 
-        estacion.quitarVehiculo(vehiculo);
+        String mensaje = "Desbloqueo exitoso. Vehiculo liberado correctamente.";
+        return new DesbloqueoResponse(
+                mensaje,
+                vehiculo.getPatente(),
+                0,
+                procesadorPago.getMetodoPago().name(),
+                vehiculo.obtenerFaseActual());
+    }
 
-        String mensaje = "Desbloqueo exitoso. Vehiculo liberado y cobro realizado correctamente.";
-        return new DesbloqueoResponse(mensaje, vehiculo.getPatente(), importeFinal, procesadorPago.getMetodoPago().name());
+    public FinalizarAlquilerResponse finalizar(FinalizarAlquilerRequest request) {
+        validarFinalizarRequest(request);
+        Vehiculo vehiculo = buscarVehiculo(request.getPatente());
+
+        double costoFinal = estrategiaTarifaActiva.calcular(request.getMinutosTranscurridos(), vehiculo);
+        vehiculo.finalizarViaje();
+
+        return new FinalizarAlquilerResponse(
+                "Viaje finalizado correctamente.",
+                vehiculo.getPatente(),
+                costoFinal,
+                request.getMinutosTranscurridos(),
+                vehiculo.obtenerFaseActual(),
+                estrategiaTarifaActiva.obtenerNombre());
+    }
+
+    public CambioTarifaResponse cambiarCriterioTarifa(CambioTarifaRequest request) {
+        if (request == null || request.getCriterio() == null || request.getCriterio().trim().isEmpty()) {
+            throw new SolicitudInvalidaException("Debe indicar el criterio de tarifa.");
+        }
+
+        this.estrategiaTarifaActiva = estrategiaTarifaFactory.obtenerEstrategia(request.getCriterio());
+        return new CambioTarifaResponse(
+                "Criterio de tarifa actualizado correctamente.",
+                estrategiaTarifaActiva.obtenerNombre());
     }
 
     private Usuario buscarUsuario(Long idUsuario) {
@@ -68,6 +109,33 @@ public class EcoRideService {
     private void validarBateria(Vehiculo vehiculo) {
         if (vehiculo.getBateria() < BATERIA_MINIMA) {
             throw new BateriaInsuficienteException("Bateria Insuficiente: el vehiculo tiene " + vehiculo.getBateria() + "% de bateria.");
+        }
+    }
+
+    private void validarDesbloqueoRequest(DesbloqueoRequest request) {
+        if (request == null) {
+            throw new SolicitudInvalidaException("La solicitud de desbloqueo es obligatoria.");
+        }
+        if (request.getIdUsuario() == null) {
+            throw new SolicitudInvalidaException("El idUsuario es obligatorio.");
+        }
+        if (request.getPatente() == null || request.getPatente().trim().isEmpty()) {
+            throw new SolicitudInvalidaException("La patente es obligatoria.");
+        }
+        if (request.getMetodoPago() == null || request.getMetodoPago().trim().isEmpty()) {
+            throw new SolicitudInvalidaException("El metodo de pago es obligatorio.");
+        }
+    }
+
+    private void validarFinalizarRequest(FinalizarAlquilerRequest request) {
+        if (request == null) {
+            throw new SolicitudInvalidaException("La solicitud de finalizacion es obligatoria.");
+        }
+        if (request.getPatente() == null || request.getPatente().trim().isEmpty()) {
+            throw new SolicitudInvalidaException("La patente es obligatoria.");
+        }
+        if (request.getMinutosTranscurridos() <= 0) {
+            throw new SolicitudInvalidaException("Los minutos transcurridos deben ser mayores a cero.");
         }
     }
 

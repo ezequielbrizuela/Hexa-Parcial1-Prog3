@@ -6,6 +6,7 @@ public class DesbloqueoResponse {
     private String vehiculoDesbloqueado;
     private double montoCobrado;
     private String metodoPago;
+    private String faseActual;
 
     public DesbloqueoResponse() {
     }   
@@ -15,6 +16,14 @@ public class DesbloqueoResponse {
         this.vehiculoDesbloqueado = vehiculoDesbloqueado;
         this.montoCobrado = montoCobrado;
         this.metodoPago = metodoPago;
+    }
+
+    public DesbloqueoResponse(String mensaje, String vehiculoDesbloqueado, double montoCobrado, String metodoPago, String faseActual) {
+        this.mensaje = mensaje;
+        this.vehiculoDesbloqueado = vehiculoDesbloqueado;
+        this.montoCobrado = montoCobrado;
+        this.metodoPago = metodoPago;
+        this.faseActual = faseActual;
     }
 
     public String getMensaje() {
@@ -47,5 +56,13 @@ public class DesbloqueoResponse {
 
     public void setMetodoPago(String metodoPago) {
         this.metodoPago = metodoPago;
+    }
+
+    public String getFaseActual() {
+        return faseActual;
+    }
+
+    public void setFaseActual(String faseActual) {
+        this.faseActual = faseActual;
     }
 }
