@@ -6,5 +6,4 @@ target/
 release.properties
 logs/
 *.log
-.agents
 application-local.properties
