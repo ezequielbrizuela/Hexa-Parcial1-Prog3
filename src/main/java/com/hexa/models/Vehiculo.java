@@ -12,7 +12,7 @@ import lombok.ToString;
 @Setter
 @NoArgsConstructor
 @ToString
-public class Vehiculo {
+public class Vehiculo implements Comparable<Vehiculo> {
     private String patente;
     private int bateria;
     private double tarifaBase;
@@ -43,5 +43,14 @@ public class Vehiculo {
 
     public String obtenerFaseActual() {
         return estado.obtenerNombreAmigable();
+    }
+
+    @Override
+    public int compareTo(Vehiculo otroVehiculo) {
+        int comparacionBateria = Integer.compare(this.bateria, otroVehiculo.bateria);
+        if (comparacionBateria != 0) {
+            return comparacionBateria;
+        }
+        return this.patente.compareToIgnoreCase(otroVehiculo.patente);
     }
 }

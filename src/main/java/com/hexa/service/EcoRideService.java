@@ -1,5 +1,6 @@
 package com.hexa.service;
 
+import com.hexa.comparators.ComparadorTarifaBaseDescendente;
 import com.hexa.dto.CambioTarifaRequest;
 import com.hexa.dto.CambioTarifaResponse;
 import com.hexa.dto.DesbloqueoRequest;
@@ -22,7 +23,9 @@ import com.hexa.service.tarifa.EstrategiaTarifaFactory;
 
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -88,6 +91,18 @@ public class EcoRideService {
         return new CambioTarifaResponse(
                 "Criterio de tarifa actualizado correctamente.",
                 estrategiaTarifaActiva.obtenerNombre());
+    }
+
+    public List<Vehiculo> obtenerVehiculosPorPrioridadCarga() {
+        List<Vehiculo> vehiculos = estacion.obtenerTodosLosVehiculos();
+        Collections.sort(vehiculos);
+        return vehiculos;
+    }
+
+    public List<Vehiculo> obtenerVehiculosPorTarifaDescendente() {
+        List<Vehiculo> vehiculos = estacion.obtenerTodosLosVehiculos();
+        Collections.sort(vehiculos, new ComparadorTarifaBaseDescendente());
+        return vehiculos;
     }
 
     private Usuario buscarUsuario(Long idUsuario) {
