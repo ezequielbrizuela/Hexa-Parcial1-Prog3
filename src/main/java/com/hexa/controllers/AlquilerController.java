@@ -13,6 +13,7 @@ import com.hexa.exceptions.MetodoPagoInvalidoException;
 import com.hexa.exceptions.SolicitudInvalidaException;
 import com.hexa.exceptions.TransicionEstadoInvalidaException;
 import com.hexa.exceptions.UsuarioNoEncontradoException;
+import com.hexa.exceptions.VehiculoDuplicadoException;
 import com.hexa.exceptions.VehiculoNoEncontradoException;
 import com.hexa.service.EcoRideService;
 
@@ -98,5 +99,11 @@ public class AlquilerController {
     public ResponseEntity<ErrorResponse> manejarSolicitudInvalida(SolicitudInvalidaException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("SOLICITUD_INVALIDA", ex.getMessage()));
+    }
+
+    @ExceptionHandler(VehiculoDuplicadoException.class)
+    public ResponseEntity<ErrorResponse> manejarVehiculoDuplicado(VehiculoDuplicadoException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("VEHICULO_DUPLICADO", ex.getMessage()));
     }
 }

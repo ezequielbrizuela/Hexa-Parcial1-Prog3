@@ -1,7 +1,12 @@
 package com.hexa.models;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import com.hexa.exceptions.SolicitudInvalidaException;
+import com.hexa.exceptions.VehiculoDuplicadoException;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,36 +18,60 @@ import lombok.ToString;
 public class EstacionAnclaje {
 
     private String nombre;
-    private List<Vehiculo> vehiculosDisponibles;
+    private Map<String, Vehiculo> vehiculosPorPatente;
 
     public EstacionAnclaje() {
-        this.vehiculosDisponibles = new ArrayList<>();
+        this.vehiculosPorPatente = new HashMap<>();
     }
 
     public EstacionAnclaje(String nombre) {
         this.nombre = nombre;
-        this.vehiculosDisponibles = new ArrayList<>();
+        this.vehiculosPorPatente = new HashMap<>();
     }
 
     public EstacionAnclaje(String nombre, List<Vehiculo> vehiculosDisponibles) {
         this.nombre = nombre;
-        this.vehiculosDisponibles = vehiculosDisponibles;
+        this.vehiculosPorPatente = new HashMap<>();
+        for (Vehiculo vehiculo : vehiculosDisponibles) {
+            agregarVehiculo(vehiculo);
+        }
     }
 
     public Vehiculo buscarVehiculoPorPatente(String patente) {
-        for (Vehiculo vehiculo : vehiculosDisponibles) {
-            if (vehiculo.getPatente().equalsIgnoreCase(patente)) {
-                return vehiculo;
-            }
-        }
-        return null;
+        return vehiculosPorPatente.get(normalizarPatente(patente));
     }
 
     public void agregarVehiculo(Vehiculo vehiculo) {
-        vehiculosDisponibles.add(vehiculo);
+        validarVehiculo(vehiculo);
+        String patenteNormalizada = normalizarPatente(vehiculo.getPatente());
+
+        if (vehiculosPorPatente.containsKey(patenteNormalizada)) {
+            throw new VehiculoDuplicadoException("Ya existe un vehiculo registrado con la patente " + vehiculo.getPatente() + ".");
+        }
+
+        vehiculosPorPatente.put(patenteNormalizada, vehiculo);
     }
 
     public void quitarVehiculo(Vehiculo vehiculo) {
-        vehiculosDisponibles.remove(vehiculo);
+        validarVehiculo(vehiculo);
+        vehiculosPorPatente.remove(normalizarPatente(vehiculo.getPatente()));
+    }
+
+    public List<Vehiculo> obtenerTodosLosVehiculos() {
+        return new ArrayList<>(vehiculosPorPatente.values());
+    }
+
+    private void validarVehiculo(Vehiculo vehiculo) {
+        if (vehiculo == null) {
+            throw new SolicitudInvalidaException("El vehiculo es obligatorio.");
+        }
+        normalizarPatente(vehiculo.getPatente());
+    }
+
+    private String normalizarPatente(String patente) {
+        if (patente == null || patente.trim().isEmpty()) {
+            throw new SolicitudInvalidaException("La patente es obligatoria.");
+        }
+        return patente.trim().toUpperCase();
     }
 }
